@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>WebGazer 視線計測テスト</title>
+
+    <script src="./node_modules/webgazer/dist/webgazer.js"></script>
+    <script src="./js/tracking.js" defer></script>
+    <script src="./js/calibration.js" defer></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        #imageArea {
+            position: relative;
+            width: 600px;
+            max-width: 95%;
+            margin: 25px auto;
+        }
+
+        #steakImage {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        #regionOverlay {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .region-outline {
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linejoin: round;
+            stroke-linecap: round;
+        }
+
+        .garnish {
+            stroke: #00c853;
+        }
+
+        .hamburger {
+            stroke: #ff1744;
+        }
+
+        .plate {
+            stroke: #ff9100;
+        }
+
+        .background {
+            stroke: #1685ff;
+        }
+
+        .region-label {
+            font-size: 12px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            fill: white;
+            stroke: black;
+            stroke-width: 2px;
+            paint-order: stroke;
+        }
+
+        #currentRegion {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px;
+        }
+
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 90%;
+            max-width: 650px;
+        }
+
+        th, td {
+            border: 1px solid #999;
+            padding: 8px;
+        }
+
+        th {
+            background: #eee;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px auto;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>WebGazer 視線計測テスト</h2>
+
+    <p id="status">開始ボタンを押してください</p>
+
+    <p id="coordinates">視線座標：未取得</p>
+
+    <p id="count">取得件数：0件</p>
+
+    <p id="dataSize">データ量：0 bytes</p>
+
+    <h3>ステーキ画像1</h3>
+
+    <div id="imageArea">
+
+        <img
+            id="steakImage"
+            src="./images/ステーキ画像1.jpg"
+            alt="ステーキ画像1"
+        >
+
+        <svg
+            id="regionOverlay"
+            viewBox="0 0 393 310"
+            preserveAspectRatio="none"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+
+            <!-- 背景：皿の外側 -->
+            <path
+                class="region-outline background"
+                d="
+                    M 0,0 H 393 V 310 H 0 Z
+
+                    M 18,169
+                    L 19,137 29,106 55,81
+                    90,61 137,47 194,43
+                    253,48 309,65 350,89
+                    376,122 385,159 382,198
+                    362,232 326,258 278,278
+                    220,289 158,284 101,270
+                    59,247 30,216 Z
+                "
+                fill-rule="evenodd"
+            />
+
+            <!-- 皿：付け合わせとハンバーグを除いた部分 -->
+            <path
+                class="region-outline plate"
+                d="
+                    M 18,169
+                    L 19,137 29,106 55,81
+                    90,61 137,47 194,43
+                    253,48 309,65 350,89
+                    376,122 385,159 382,198
+                    362,232 326,258 278,278
+                    220,289 158,284 101,270
+                    59,247 30,216 Z
+
+                    M 108,72
+                    L 145,76 180,71 213,78
+                    225,99 207,118 177,126
+                    145,117 113,105 Z
+
+                    M 92,132
+                    L 110,112 151,107 195,111
+                    237,119 286,135 309,158
+                    303,191 279,213 239,232
+                    193,242 146,232 111,218
+                    91,194 88,162 Z
+                "
+                fill-rule="evenodd"
+            />
+
+            <!-- 付け合わせ -->
+            <polygon
+                class="region-outline garnish"
+                points="
+                    108,72 145,76 180,71 213,78
+                    225,99 207,118 177,126
+                    145,117 113,105
+                "
+            />
+
+            <!-- ハンバーグ -->
+            <polygon
+                class="region-outline hamburger"
+                points="
+                    92,132 110,112 151,107 195,111
+                    237,119 286,135 309,158
+                    303,191 279,213 239,232
+                    193,242 146,232 111,218
+                    91,194 88,162
+                "
+            />
+
+            <!-- 領域名 -->
+            <text class="region-label" x="165" y="91">
+                付け合わせ
+            </text>
+
+            <text class="region-label" x="198" y="181">
+                ハンバーグ
+            </text>
+
+            <text class="region-label" x="340" y="250">
+                皿
+            </text>
+
+            <text class="region-label" x="35" y="20">
+                背景
+            </text>
+
+        </svg>
+
+    </div>
+
+    <!-- 領域の凡例 -->
+    <div class="legend">
+
+        <div class="legend-item">
+            <span
+                class="legend-color"
+                style="background:#00c853;"
+            ></span>
+            <span>付け合わせ</span>
+        </div>
+
+        <div class="legend-item">
+            <span
+                class="legend-color"
+                style="background:#ff1744;"
+            ></span>
+            <span>ハンバーグ</span>
+        </div>
+
+        <div class="legend-item">
+            <span
+                class="legend-color"
+                style="background:#ff9100;"
+            ></span>
+            <span>皿</span>
+        </div>
+
+        <div class="legend-item">
+            <span
+                class="legend-color"
+                style="background:#1685ff;"
+            ></span>
+            <span>背景</span>
+        </div>
+
+    </div>
+
+    <!-- 現在の視線領域 -->
+    <p id="currentRegion">
+        現在の視線領域：未取得
+    </p>
+
+    <!-- 操作ボタン -->
+    <button id="startButton">
+        実験開始
+    </button>
+
+    <button
+        id="stopButton"
+        style="display:none;"
+        disabled
+    >
+        実験終了
+    </button>
+
+    <!-- キャリブレーション -->
+    <div id="calibrationArea" style="display:none;"></div>
+
+    <!-- 領域別データ -->
+    <h3>領域別視線データ</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>領域</th>
+                <th>取得回数</th>
+                <th>訪問回数</th>
+                <th>滞在時間（秒）</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            <tr>
+                <td>付け合わせ</td>
+                <td id="samples0">0</td>
+                <td id="visits0">0</td>
+                <td id="time0">0.0</td>
+            </tr>
+
+            <tr>
+                <td>ハンバーグ</td>
+                <td id="samples1">0</td>
+                <td id="visits1">0</td>
+                <td id="time1">0.0</td>
+            </tr>
+
+            <tr>
+                <td>皿</td>
+                <td id="samples2">0</td>
+                <td id="visits2">0</td>
+                <td id="time2">0.0</td>
+            </tr>
+
+            <tr>
+                <td>背景</td>
+                <td id="samples3">0</td>
+                <td id="visits3">0</td>
+                <td id="time3">0.0</td>
+            </tr>
+
+        </tbody>
+    </table>
+
+</body>
+</html>
